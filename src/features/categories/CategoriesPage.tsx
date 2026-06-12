@@ -55,6 +55,7 @@ export default function CategoriesPage() {
           },
         ]}
         data={categories}
+        pageSize={10}
       />
 
       {showForm && (

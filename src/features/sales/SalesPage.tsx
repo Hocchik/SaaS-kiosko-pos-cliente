@@ -98,6 +98,7 @@ export default function SalesPage() {
         ]}
         data={sales}
         onRowClick={setSelected}
+        pageSize={10}
       />
 
       {selected && (

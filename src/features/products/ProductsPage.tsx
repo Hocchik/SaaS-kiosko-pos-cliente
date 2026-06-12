@@ -78,6 +78,7 @@ export default function ProductsPage() {
         ]}
         data={filtered}
         onRowClick={(r) => navigate(`/products/${r.id}`)}
+        pageSize={10}
       />
 
       {showForm && (

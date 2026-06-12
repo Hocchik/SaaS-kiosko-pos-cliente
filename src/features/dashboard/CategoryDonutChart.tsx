@@ -4,9 +4,10 @@ import type { CategorySales } from '../../types';
 
 interface Props {
   data: CategorySales[];
+  height: number;
 }
 
-export default function CategoryDonutChart({ data }: Props) {
+export default function CategoryDonutChart({ data, height }: Props) {
   const ref = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -16,21 +17,23 @@ export default function CategoryDonutChart({ data }: Props) {
     svg.selectAll('*').remove();
 
     const container = ref.current.parentElement!;
-    const size = Math.min(container.clientWidth, 360);
-    const radius = size / 2 - 20;
-    const innerRadius = radius * 0.55;
+    // Reserve ~48px for the legend row below the SVG
+    const legendHeight = 48;
+    const donutArea    = height - legendHeight;
+    const size         = Math.min(container.clientWidth, donutArea, 240);
+    const radius       = size / 2 - 12;
+    const innerRadius  = radius * 0.55;
 
     svg.attr('width', size).attr('height', size);
 
-    const g = svg.append('g')
-      .attr('transform', `translate(${size / 2},${size / 2})`);
+    const g = svg.append('g').attr('transform', `translate(${size / 2},${size / 2})`);
 
     const color = d3.scaleOrdinal<string>()
-      .domain(data.map(d => d.categoryName))
+      .domain(data.map((d) => d.categoryName))
       .range(d3.schemeTableau10);
 
     const pie = d3.pie<CategorySales>()
-      .value(d => d.totalRevenue)
+      .value((d) => d.totalRevenue)
       .sort(null)
       .padAngle(0.02);
 
@@ -46,28 +49,25 @@ export default function CategoryDonutChart({ data }: Props) {
 
     arcs.append('path')
       .attr('d', arc)
-      .attr('fill', d => color(d.data.categoryName))
+      .attr('fill', (d) => color(d.data.categoryName))
       .attr('opacity', 0.9)
       .attr('stroke', 'var(--bg-surface)')
       .attr('stroke-width', 2)
-      .each(function(d) {
-        (this as any)._current = { startAngle: d.startAngle, endAngle: d.startAngle };
-      })
+      .each(function (d) { (this as any)._current = { startAngle: d.startAngle, endAngle: d.startAngle }; })
       .transition()
       .duration(800)
-      .attrTween('d', function(d) {
+      .attrTween('d', function (d) {
         const interpolate = d3.interpolate((this as any)._current, d);
         (this as any)._current = interpolate(1);
         return (t: number) => arc(interpolate(t))!;
       });
 
-    // Center total
     const total = data.reduce((sum, d) => sum + d.totalRevenue, 0);
     g.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '-0.2em')
       .attr('fill', 'var(--fg)')
-      .attr('font-size', '18px')
+      .attr('font-size', '16px')
       .attr('font-weight', '700')
       .text(`S/${total.toFixed(0)}`);
 
@@ -75,19 +75,22 @@ export default function CategoryDonutChart({ data }: Props) {
       .attr('text-anchor', 'middle')
       .attr('dy', '1.3em')
       .attr('fill', 'var(--fg-muted)')
-      .attr('font-size', '12px')
+      .attr('font-size', '11px')
       .text('Total');
-
-  }, [data]);
+  }, [data, height]);
 
   return (
     <div className="flex flex-col items-center gap-3">
       <svg ref={ref} />
       <div className="flex flex-wrap justify-center gap-3">
         {data.map((d, i) => (
-          <div key={d.categoryId} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--fg-muted)' }}>
+          <div
+            key={d.categoryId}
+            className="flex items-center gap-1.5 text-xs"
+            style={{ color: 'var(--fg-muted)' }}
+          >
             <span
-              className="w-3 h-3 rounded-sm inline-block"
+              className="w-3 h-3 rounded-sm inline-block shrink-0"
               style={{ backgroundColor: d3.schemeTableau10[i % 10] }}
             />
             {d.categoryName}

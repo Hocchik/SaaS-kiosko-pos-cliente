@@ -76,6 +76,7 @@ export default function ClientsPage() {
         ]}
         data={filtered}
         onRowClick={(r) => navigate(`/clients/${r.id}`)}
+        pageSize={10}
       />
 
       {showForm && (

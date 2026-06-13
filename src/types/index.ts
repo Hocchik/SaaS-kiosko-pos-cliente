@@ -1,3 +1,13 @@
+export interface TenantConfig {
+  name: string;
+  primaryColor: string;
+  accentColor: string;
+  logoUrl: string | null;
+  currency: string;
+  duesLabel: string;
+  features: Record<string, boolean>;
+}
+
 // Auth
 export interface LoginRequest {
   username: string;
@@ -8,6 +18,8 @@ export interface LoginResponse {
   token: string;
   username: string;
   role: string;
+  tenantId: string | null;
+  features: Record<string, boolean>;
 }
 
 export interface UserResponse {

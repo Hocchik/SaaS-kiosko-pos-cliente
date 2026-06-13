@@ -8,21 +8,33 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
+  Upload,
+  FileText,
 } from 'lucide-react';
 import { useSidebarStore } from '../../store/sidebar.store';
+import { useTenantStore } from '../../store/tenant.store';
 
-const links = [
+const ALL_LINKS = [
   { to: '/pos',        label: 'POS',        Icon: ShoppingCart },
   { to: '/dashboard',  label: 'Dashboard',  Icon: LayoutDashboard },
   { to: '/sales',      label: 'Ventas',     Icon: Receipt },
-  { to: '/clients',    label: 'Clientes',   Icon: Users },
+  { to: '/clients',    label: 'Clientes',   Icon: Users,     feature: 'dues' },
   { to: '/products',   label: 'Productos',  Icon: Package },
   { to: '/categories', label: 'Categorías', Icon: Tag },
+  { to: '/bulk',       label: 'Importar',   Icon: Upload,    feature: 'bulk_upload' },
+  { to: '/reports',    label: 'Reportes',   Icon: FileText,  feature: 'reports' },
 ];
 
 export default function Sidebar() {
-  const collapsed = useSidebarStore((s) => s.collapsed);
-  const toggle    = useSidebarStore((s) => s.toggle);
+  const collapsed        = useSidebarStore((s) => s.collapsed);
+  const toggle           = useSidebarStore((s) => s.toggle);
+  const tenantName       = useTenantStore((s) => s.config?.name ?? 'POS');
+  const logoUrl          = useTenantStore((s) => s.config?.logoUrl ?? null);
+  const isFeatureEnabled = useTenantStore((s) => s.isFeatureEnabled);
+
+  const links = ALL_LINKS.filter(
+    (link) => !('feature' in link) || isFeatureEnabled(link.feature as string),
+  );
 
   return (
     <aside
@@ -33,7 +45,6 @@ export default function Sidebar() {
         borderRight: '1px solid var(--border)',
       }}
     >
-      {/* Logo + toggle — el botón siempre está arriba */}
       <div
         className="flex items-center border-b px-3"
         style={{
@@ -43,7 +54,6 @@ export default function Sidebar() {
         }}
       >
         {collapsed ? (
-          /* Colapsado: solo el botón de expandir centrado en el header */
           <button
             onClick={toggle}
             className="flex items-center justify-center w-9 h-9 rounded-lg transition-opacity hover:opacity-70"
@@ -57,25 +67,26 @@ export default function Sidebar() {
             <ChevronRight size={16} />
           </button>
         ) : (
-          /* Expandido: logo + texto + botón de colapsar */
           <>
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center overflow-hidden"
-                style={{ backgroundColor: '#fff', padding: '2px' }}
+                style={{ backgroundColor: logoUrl ? '#fff' : 'var(--primary)', padding: logoUrl ? '2px' : '0' }}
               >
-                <img
-                  src="/logo.png"
-                  alt="Divino Encanto"
-                  className="w-full h-full object-contain"
-                />
+                {logoUrl ? (
+                  <img src={logoUrl} alt={tenantName} className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-base font-bold" style={{ color: '#fff' }}>
+                    {tenantName.charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
               <div className="min-w-0">
                 <h2
                   className="text-base font-bold tracking-tight leading-tight truncate"
                   style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary)' }}
                 >
-                  Divino Encanto
+                  {tenantName}
                 </h2>
                 <p className="text-xs" style={{ color: 'var(--fg-muted)' }}>
                   Sistema de gestión
@@ -94,7 +105,6 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 space-y-0.5 px-2 py-3">
         {links.map(({ to, label, Icon }) => (
           <NavLink
@@ -117,7 +127,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
       {!collapsed && (
         <div className="border-t px-3 py-3" style={{ borderColor: 'var(--border)' }}>
           <p className="text-xs text-center" style={{ color: 'var(--fg-muted)', opacity: 0.5 }}>

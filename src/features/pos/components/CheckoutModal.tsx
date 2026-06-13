@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCartStore } from '../../../store/cart.store';
 import { useToastStore } from '../../../store/toast.store';
+import { useTenantStore } from '../../../store/tenant.store';
 import { posApi } from '../../../api/pos.api';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
@@ -21,6 +22,8 @@ export default function CheckoutModal({ clientId, onClose }: Props) {
   const [amountPaid, setAmountPaid] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const duesEnabled = useTenantStore((s) => s.isFeatureEnabled('dues'));
 
   const totalAmount = total();
   const parsedPaid = parseFloat(amountPaid);
@@ -92,73 +95,74 @@ export default function CheckoutModal({ clientId, onClose }: Props) {
         />
       </div>
 
-      {/* Deuda toggle */}
-      <div
-        className="mb-4 p-3 rounded-lg"
-        style={{ backgroundColor: isDebt ? 'color-mix(in srgb, var(--danger) 8%, var(--bg))' : 'var(--bg)', border: `1px solid ${isDebt ? 'var(--danger)' : 'var(--border)'}`, transition: 'all 0.15s' }}
-      >
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={isDebt}
-            onChange={(e) => handleDebtToggle(e.target.checked)}
-            className="w-4 h-4 rounded"
-            style={{ accentColor: 'var(--danger)' }}
-          />
-          <span className="text-sm font-semibold" style={{ color: isDebt ? 'var(--danger)' : 'var(--fg)' }}>
-            Registrar como deuda
-          </span>
-          {isDebt ? (
-            <span className="ml-auto text-sm font-bold" style={{ color: 'var(--danger)' }}>
-              Debe: ${pendingAmount.toFixed(2)}
+      {duesEnabled ? (
+        <div
+          className="mb-4 p-3 rounded-lg"
+          style={{ backgroundColor: isDebt ? 'color-mix(in srgb, var(--danger) 8%, var(--bg))' : 'var(--bg)', border: `1px solid ${isDebt ? 'var(--danger)' : 'var(--border)'}`, transition: 'all 0.15s' }}
+        >
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isDebt}
+              onChange={(e) => handleDebtToggle(e.target.checked)}
+              className="w-4 h-4 rounded"
+              style={{ accentColor: 'var(--danger)' }}
+            />
+            <span className="text-sm font-semibold" style={{ color: isDebt ? 'var(--danger)' : 'var(--fg)' }}>
+              Registrar como deuda
             </span>
-          ) : null}
-        </label>
+            {isDebt ? (
+              <span className="ml-auto text-sm font-bold" style={{ color: 'var(--danger)' }}>
+                Debe: ${pendingAmount.toFixed(2)}
+              </span>
+            ) : null}
+          </label>
 
-        {isDebt ? (
-          <div className="mt-3 space-y-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={hasPartial}
-                onChange={(e) => { setHasPartial(e.target.checked); setAmountPaid(''); }}
-                className="w-3.5 h-3.5 rounded"
-                style={{ accentColor: 'var(--accent)' }}
-              />
-              <span className="text-xs font-medium" style={{ color: 'var(--fg-muted)' }}>El cliente abona algo ahora</span>
-            </label>
-
-            {hasPartial ? (
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--fg-muted)' }}>Monto abonado</label>
+          {isDebt ? (
+            <div className="mt-3 space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={totalAmount - 0.01}
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  placeholder={`Máx: $${(totalAmount - 0.01).toFixed(2)}`}
+                  type="checkbox"
+                  checked={hasPartial}
+                  onChange={(e) => { setHasPartial(e.target.checked); setAmountPaid(''); }}
+                  className="w-3.5 h-3.5 rounded"
+                  style={{ accentColor: 'var(--accent)' }}
+                />
+                <span className="text-xs font-medium" style={{ color: 'var(--fg-muted)' }}>El cliente abona algo ahora</span>
+              </label>
+
+              {hasPartial ? (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--fg-muted)' }}>Monto abonado</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={totalAmount - 0.01}
+                    value={amountPaid}
+                    onChange={(e) => setAmountPaid(e.target.value)}
+                    placeholder={`Máx: $${(totalAmount - 0.01).toFixed(2)}`}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--fg)' }}
+                    autoFocus
+                  />
+                </div>
+              ) : null}
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--fg-muted)' }}>Fecha límite de pago (opcional)</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                   style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--fg)' }}
-                  autoFocus
                 />
               </div>
-            ) : null}
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--fg-muted)' }}>Fecha límite de pago (opcional)</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--fg)' }}
-              />
             </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex gap-3">
         <Button variant="secondary" onClick={onClose} className="flex-1">Cancelar</Button>

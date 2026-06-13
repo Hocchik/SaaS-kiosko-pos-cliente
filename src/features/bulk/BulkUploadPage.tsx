@@ -16,16 +16,23 @@ export default function BulkUploadPage() {
   const { data: categories = [] } = useSWR('categories', categoriesApi.findAll);
 
   const handleDownloadTemplate = async () => {
-    const blob = activeTab === 'clients'
-      ? await bulkApi.downloadClientTemplate()
-      : await bulkApi.downloadProductTemplate();
+    try {
+      const blob = activeTab === 'clients'
+        ? await bulkApi.downloadClientTemplate()
+        : await bulkApi.downloadProductTemplate();
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = activeTab === 'clients' ? 'plantilla_clientes.xlsx' : 'plantilla_productos.xlsx';
-    a.click();
-    URL.revokeObjectURL(url);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = activeTab === 'clients' ? 'plantilla_clientes.xlsx' : 'plantilla_productos.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al descargar la plantilla';
+      setResult({ totalRows: 0, successCount: 0, errorCount: 1, errors: [{ row: 0, message: msg }] });
+    }
   };
 
   const handleUpload = async () => {

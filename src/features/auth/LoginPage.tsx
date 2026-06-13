@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { authApi } from '../../api/auth.api';
 import { useAuthStore } from '../../store/auth.store';
+import { useTenantStore } from '../../store/tenant.store';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -21,6 +22,7 @@ export default function LoginPage() {
     try {
       const res = await authApi.login({ username, password });
       setAuth(res.token, res.username, res.role);
+      useTenantStore.getState().loadTenantConfig();
       navigate('/pos');
     } catch (err) {
       const axiosErr = err as AxiosError<{ message?: string }>;
@@ -39,7 +41,7 @@ export default function LoginPage() {
         style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
       >
         <h1 className="text-3xl font-bold text-center mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary)' }}>
-          Divino Encanto
+          KioskoPOS
         </h1>
         <p className="text-center mb-8 text-sm" style={{ color: 'var(--fg-muted)' }}>Inicia sesión para continuar</p>
 

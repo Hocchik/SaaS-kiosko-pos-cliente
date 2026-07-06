@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Upload,
   FileText,
+  Landmark,
 } from 'lucide-react';
 import { useSidebarStore } from '../../store/sidebar.store';
 import { useTenantStore } from '../../store/tenant.store';
@@ -22,6 +23,7 @@ const ALL_LINKS = [
   { to: '/products',   label: 'Productos',  Icon: Package },
   { to: '/categories', label: 'Categorías', Icon: Tag },
   { to: '/bulk',       label: 'Importar',   Icon: Upload,    feature: 'bulk_upload' },
+  { to: '/cash-close', label: 'Caja',        Icon: Landmark },
   { to: '/reports',    label: 'Reportes',   Icon: FileText,  feature: 'reports' },
 ];
 

@@ -16,6 +16,7 @@ import DashboardPage from '../features/dashboard/DashboardPage';
 import NotFoundPage from '../features/errors/NotFoundPage';
 import BulkUploadPage from '../features/bulk/BulkUploadPage';
 import ReportsPage from '../features/reports/ReportsPage';
+import CashClosePage from '../features/cash-close/CashClosePage';
 
 function ProtectedRoute() {
   const token = useAuthStore((s) => s.token);
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
           { path: '/products/:id', element: <ProductDetailView /> },
           { path: '/categories', element: <CategoriesPage /> },
           { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/cash-close', element: <CashClosePage /> },
           {
             element: <FeatureRoute feature="dues" />,
             children: [
